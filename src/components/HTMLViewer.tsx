@@ -13,21 +13,19 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleFullscreen = () => {
-    if (!containerRef.current) return;
+    if (!iframeRef.current) return;
 
     if (!isFullscreen) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
+      if (iframeRef.current.requestFullscreen) {
+        iframeRef.current.requestFullscreen();
       }
     } else {
       if (document.exitFullscreen) {
         document.exitFullscreen();
       }
     }
-    setIsFullscreen(!isFullscreen);
   };
 
   const togglePlay = () => {
@@ -52,7 +50,7 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   }
 
   return (
-    <Card className="h-full" ref={containerRef}>
+    <Card className="h-full">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -87,7 +85,7 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
               variant="outline"
               size="sm"
               onClick={toggleFullscreen}
-              disabled={!htmlContent}
+              disabled={!htmlContent || !isPlaying}
             >
               {isFullscreen ? (
                 <Minimize className="h-4 w-4" />
