@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Maximize, Minimize, Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,13 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
       const url = URL.createObjectURL(blob);
       iframeRef.current.src = url;
       setIsPlaying(true);
+      
+      // Focus the iframe after loading to ensure keyboard events work
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.focus();
+        }
+      }, 100);
     } else if (iframeRef.current) {
       iframeRef.current.src = "about:blank";
       setIsPlaying(false);
@@ -42,12 +49,31 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
 
   const handleFullscreenChange = () => {
     setIsFullscreen(!!document.fullscreenElement);
+    
+    // Ensure iframe is focused when entering fullscreen
+    if (document.fullscreenElement && iframeRef.current) {
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.focus();
+        }
+      }, 100);
+    }
+  };
+
+  const handleIframeClick = () => {
+    // Focus iframe when clicked to ensure keyboard events work
+    if (iframeRef.current) {
+      iframeRef.current.focus();
+    }
   };
 
   // Listen for fullscreen changes
-  if (typeof document !== 'undefined') {
+  useEffect(() => {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-  }
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   return (
     <Card className="h-full">
@@ -105,6 +131,8 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
               title={fileName || "HTML Content"}
               sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               style={{ minHeight: "400px" }}
+              onClick={handleIframeClick}
+              tabIndex={0}
             />
             {!isPlaying && (
               <div className="absolute inset-0 bg-secondary/50 flex items-center justify-center rounded-b-lg">
