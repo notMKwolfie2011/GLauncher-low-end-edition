@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Maximize, Minimize, Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,12 +17,12 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleFullscreen = () => {
-    if (!iframeRef.current) return;
+    if (!containerRef.current) return;
 
     if (!isFullscreen) {
-      // Request fullscreen on the iframe itself for better game compatibility
-      if (iframeRef.current.requestFullscreen) {
-        iframeRef.current.requestFullscreen();
+      // Request fullscreen on the container
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen();
       }
     } else {
       // Exit fullscreen mode
@@ -32,26 +33,24 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   };
 
   const togglePlay = () => {
-    if (!isPlaying && iframeRef.current && htmlContent) {
-      // Create blob URL only once and reuse it
-      if (!blobUrl) {
-        const blob = new Blob([htmlContent], { type: "text/html" });
-        const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
+    if (!isPlaying && htmlContent) {
+      // Create blob URL and set iframe src
+      const blob = new Blob([htmlContent], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      setBlobUrl(url);
+      
+      if (iframeRef.current) {
         iframeRef.current.src = url;
-      } else {
-        iframeRef.current.src = blobUrl;
       }
       setIsPlaying(true);
       
-      // Focus the iframe after loading to ensure it can capture events
+      // Focus the iframe after loading
       setTimeout(() => {
         if (iframeRef.current) {
           iframeRef.current.focus();
         }
       }, 300);
     } else if (iframeRef.current) {
-      // Don't clear the src, just mark as not playing
       setIsPlaying(false);
     }
   };
@@ -60,7 +59,7 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
     const isCurrentlyFullscreen = !!document.fullscreenElement;
     setIsFullscreen(isCurrentlyFullscreen);
     
-    // Ensure iframe gets focus when entering fullscreen
+    // Focus iframe when entering fullscreen
     if (isCurrentlyFullscreen && iframeRef.current) {
       setTimeout(() => {
         if (iframeRef.current) {
@@ -71,7 +70,6 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   };
 
   const handleIframeClick = () => {
-    // Focus iframe when clicked to ensure it can capture all events
     if (iframeRef.current && isPlaying) {
       iframeRef.current.focus();
     }
@@ -104,7 +102,10 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   }, [htmlContent]);
 
   return (
-    <div ref={containerRef} className={isFullscreen ? "fixed inset-0 z-50 bg-background" : ""}>
+    <div 
+      ref={containerRef} 
+      className={isFullscreen ? "fixed inset-0 z-50 bg-background" : ""}
+    >
       <Card className="h-full">
         <CardHeader className={isFullscreen ? "p-2" : ""}>
           <div className="flex items-center justify-between">
