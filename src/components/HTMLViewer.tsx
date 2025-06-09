@@ -16,12 +16,12 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleFullscreen = () => {
-    if (!containerRef.current) return;
+    if (!iframeRef.current) return;
 
     if (!isFullscreen) {
-      // Enter fullscreen mode for the entire container
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
+      // Request fullscreen on the iframe itself for better game compatibility
+      if (iframeRef.current.requestFullscreen) {
+        iframeRef.current.requestFullscreen();
       }
     } else {
       // Exit fullscreen mode
@@ -38,12 +38,14 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
       iframeRef.current.src = url;
       setIsPlaying(true);
       
-      // Focus the iframe after loading to ensure keyboard events work
+      // Focus the iframe after loading to ensure it can capture events
       setTimeout(() => {
         if (iframeRef.current) {
           iframeRef.current.focus();
+          // Click the iframe to help trigger pointer lock capabilities
+          iframeRef.current.click();
         }
-      }, 100);
+      }, 500);
     } else if (iframeRef.current) {
       iframeRef.current.src = "about:blank";
       setIsPlaying(false);
@@ -53,7 +55,7 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   const handleFullscreenChange = () => {
     setIsFullscreen(!!document.fullscreenElement);
     
-    // Ensure iframe is focused when entering fullscreen
+    // Ensure iframe gets focus when entering fullscreen
     if (document.fullscreenElement && iframeRef.current) {
       setTimeout(() => {
         if (iframeRef.current) {
@@ -64,7 +66,7 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
   };
 
   const handleIframeClick = () => {
-    // Focus iframe when clicked to ensure keyboard events work
+    // Focus iframe when clicked to ensure it can capture all events
     if (iframeRef.current) {
       iframeRef.current.focus();
     }
@@ -133,10 +135,11 @@ const HTMLViewer = ({ htmlContent, fileName }: HTMLViewerProps) => {
                 ref={iframeRef}
                 className="w-full h-full border-0 rounded-b-lg"
                 title={fileName || "HTML Content"}
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-pointer-lock allow-fullscreen"
                 style={{ minHeight: isFullscreen ? "calc(100vh - 80px)" : "400px" }}
                 onClick={handleIframeClick}
                 tabIndex={0}
+                allow="fullscreen; pointer-lock"
               />
               {!isPlaying && (
                 <div className="absolute inset-0 bg-secondary/50 flex items-center justify-center rounded-b-lg">
